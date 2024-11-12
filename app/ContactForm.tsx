@@ -43,7 +43,8 @@ const ContactForm: React.FC = () => {
         Papa.parse(file, {
           complete: (result) => {
             const memberIds = result.data.map((row: any) => row[0]);
-            setData('csvData', memberIds);
+            const filterIds = memberIds?.filter(v => !!v);
+            setData('csvData', filterIds);
             setFileName(fileName);
           },
           header: false,
@@ -65,32 +66,46 @@ const ContactForm: React.FC = () => {
     setLog(null);
     setIsSubmitting(true);
     e.preventDefault();
+
+    const sliceByNumber = (array, number) => {
+      const length = Math.ceil(array.length / number);
+
+      return new Array(length)
+        .fill(null)
+        .map((_, i) => array.slice(i * number, (i + 1) * number));
+    };
+    const sliceData = sliceByNumber(formData.csvData, 100);
+    const logArr: any[] = [];
+
     try {
-      // APIへPOSTリクエストを送る
-      const response = await fetch('/api/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          host: formData.host,
-          site_id: formData.siteId,
-          site_pass: formData.sitePass,
-          member_id: formData.csvData
-        }),
-      });
+      for (const sd of sliceData) {
+        // APIへPOSTリクエストを送る
+        const response = await fetch('/api/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            host: formData.host,
+            site_id: formData.siteId,
+            site_pass: formData.sitePass,
+            member_id: sd
+          }),
+        });
+
+        // レスポンスをJSONとしてパース
+        const data = await response.json();
+        logArr.push(data);
+      }
 
       // localStorage.setItem("GMOHost", formData.host);
       // localStorage.setItem("GMOSiteId", formData.siteId);
       // localStorage.setItem("GMOSitePass", formData.sitePass);
 
-      // レスポンスをJSONとしてパース
-      const data = await response.json();
-
-      setLog(data);
+      setLog(logArr);
     } catch (error) {
       console.error('Error submitting form:', error);
-      setLog('エラーが発生しました');
+      setLog({'エラーが発生しました': error});
     } finally {
       setIsSubmitting(false);
     }
@@ -218,6 +233,13 @@ const ContactForm: React.FC = () => {
                   </>
               }
             </button>
+            {
+              isSubmitting
+                ? <div className="col s12">
+                  <p className="red-text" style={{'float': 'right', 'marginRight': '-1rem', 'fontWeight': 'bold'}}>ブラウザは閉じないでください。</p>
+                </div>
+                : <></>
+            }
           </form>
         </div>
       </div>

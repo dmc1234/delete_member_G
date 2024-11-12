@@ -4,12 +4,13 @@ export async function POST(req) {
   try {
     // リクエストボディからデータを受け取る
     const { host, site_id, site_pass, member_id } = await req.json();
-
+    // console.log(member_id);
     const url = `https://${host}/payment/DeleteMember.idPass`;
 
     // member_idごとに非同期リクエストを送信
     const results = await Promise.all(
       member_id.map(async (id) => {
+        // console.log(id);
         const formData = new URLSearchParams();
         formData.append('SiteID', site_id);
         formData.append('SitePass', site_pass);
@@ -23,10 +24,10 @@ export async function POST(req) {
           });
 
           const data = await response.text();
-          return { member_id: id, data: data };
+          return { member_id: id, datetime: new Date(), data: data };
         } catch (error: any) {
           // fetchが失敗した場合のエラーハンドリング
-          return { member_id: id, error: error.message };
+          return { member_id: id, datetime: new Date(), error: error.message };
         }
       })
     );
