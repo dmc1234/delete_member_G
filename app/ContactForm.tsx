@@ -112,11 +112,28 @@ const ContactForm: React.FC = () => {
   };
 
   useEffect(() => {
+    const host = localStorage.getItem("GMOHost") || '';
+    const siteId = localStorage.getItem("GMOSiteId") || '';
+    const sitePass = localStorage.getItem("GMOSitePass") || '';
+
+    const hostElm = document.getElementById('host') as HTMLInputElement;
+    if(hostElm) {
+      hostElm.value = host;
+    }
+    const siteIdElm = document.getElementById('site_id') as HTMLInputElement;
+    if(siteIdElm) {
+      siteIdElm.value = siteId;
+    }
+    const sitePassElm = document.getElementById('site_pass') as HTMLInputElement;
+    if(sitePassElm) {
+      sitePassElm.value = sitePass;
+    }
+
     setFormData({
       ...formData,
-      host: localStorage.getItem("GMOHost") || '',
-      siteId: localStorage.getItem("GMOSiteId") || '',
-      sitePass: localStorage.getItem("GMOSitePass") || ''
+      host: host,
+      siteId: siteId,
+      sitePass: sitePass
     });
   }, []);
 
