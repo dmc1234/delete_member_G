@@ -1,0 +1,42 @@
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+header {
+    width: 100%;
+    margin-bottom: 0 !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+pre {
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.mb-1 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-5 {
+    margin-bottom: 5rem !important;
+}
+
+.min-height-100 {
+    min-height: 5rem;
+}
+
+.progress {
+    margin-top: 0 !important;
+    margin-bottom: 5rem !important;
+}
