@@ -24,7 +24,7 @@ export async function POST(req) {
 
           const data = await response.text();
           return { member_id: id, data: data };
-        } catch (error) {
+        } catch (error: any) {
           // fetchが失敗した場合のエラーハンドリング
           return { member_id: id, error: error.message };
         }
@@ -42,7 +42,7 @@ export async function POST(req) {
         headers: { 'Content-Type': 'application/json' },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     // リクエスト処理全体でエラーが発生した場合のエラーハンドリング
     return new Response(
       JSON.stringify({ message: 'Error processing request', error: error.message }),

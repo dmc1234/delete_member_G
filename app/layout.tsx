@@ -9,8 +9,12 @@ export const metadata = {
   description: 'GMO会員削除機能',
 };
 
+interface Props {
+  children: React.ReactNode;
+}
+
 // レイアウトの共通部分を設定
-const Layout: React.FC = ({ children }) => {
+const Layout: React.FC<Props> = ({ children }) => {
   return (
     <html lang="ja">
       <head>
