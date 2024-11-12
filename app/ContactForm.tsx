@@ -80,9 +80,9 @@ const ContactForm: React.FC = () => {
         }),
       });
 
-      localStorage.setItem("GMOHost", formData.host);
-      localStorage.setItem("GMOSiteId", formData.siteId);
-      localStorage.setItem("GMOSitePass", formData.sitePass);
+      // localStorage.setItem("GMOHost", formData.host);
+      // localStorage.setItem("GMOSiteId", formData.siteId);
+      // localStorage.setItem("GMOSitePass", formData.sitePass);
 
       // レスポンスをJSONとしてパース
       const data = await response.json();
@@ -111,31 +111,31 @@ const ContactForm: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const host = localStorage.getItem("GMOHost") || '';
-    const siteId = localStorage.getItem("GMOSiteId") || '';
-    const sitePass = localStorage.getItem("GMOSitePass") || '';
-
-    const hostElm = document.getElementById('host') as HTMLInputElement;
-    if(hostElm) {
-      hostElm.value = host;
-    }
-    const siteIdElm = document.getElementById('site_id') as HTMLInputElement;
-    if(siteIdElm) {
-      siteIdElm.value = siteId;
-    }
-    const sitePassElm = document.getElementById('site_pass') as HTMLInputElement;
-    if(sitePassElm) {
-      sitePassElm.value = sitePass;
-    }
-
-    setFormData({
-      ...formData,
-      host: host,
-      siteId: siteId,
-      sitePass: sitePass
-    });
-  }, []);
+  // useEffect(() => {
+  //   const host = localStorage.getItem("GMOHost") || '';
+  //   const siteId = localStorage.getItem("GMOSiteId") || '';
+  //   const sitePass = localStorage.getItem("GMOSitePass") || '';
+  //
+  //   const hostElm = document.getElementById('host') as HTMLInputElement;
+  //   if(hostElm) {
+  //     hostElm.value = host;
+  //   }
+  //   const siteIdElm = document.getElementById('site_id') as HTMLInputElement;
+  //   if(siteIdElm) {
+  //     siteIdElm.value = siteId;
+  //   }
+  //   const sitePassElm = document.getElementById('site_pass') as HTMLInputElement;
+  //   if(sitePassElm) {
+  //     sitePassElm.value = sitePass;
+  //   }
+  //
+  //   setFormData({
+  //     ...formData,
+  //     host: host,
+  //     siteId: siteId,
+  //     sitePass: sitePass
+  //   });
+  // }, []);
 
   useEffect(() => {
     const newErrors: FormErrors = {};
