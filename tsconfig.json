@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
-    "compilerOptions": {
-      "noImplicitAny": false,
-      "noUncheckedIndexedAccess": false
-    },
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
