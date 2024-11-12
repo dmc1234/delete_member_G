@@ -7,11 +7,6 @@ export async function POST(req) {
 
     const url = `https://${host}/payment/DeleteMember.idPass`;
 
-    const requestData = {
-      SiteID: site_id,
-      SitePass: site_pass
-    };
-
     // member_idごとに非同期リクエストを送信
     const results = await Promise.all(
       member_id.map(async (id) => {
