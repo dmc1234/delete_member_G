@@ -1,5 +1,12 @@
 {
   "root": true,
   "extends": ["eslint:recommended"],
-  "rules": {}
+  "rules": {},
+  "parserOptions": {
+    "ecmaVersion": 7,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
 }
