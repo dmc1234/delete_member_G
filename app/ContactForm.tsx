@@ -25,7 +25,9 @@ const ContactForm: React.FC = () => {
   });
   const [fileName, setFileName] = useState<string>('');
   const [isDisableButton, setIsDisableButton] = useState<boolean>(true);
-  const [log, setLog] = useState<any>(null);
+  const [log, setLog] = useState<any[]>([]);
+  const [submitCount, setSubmitCount] = useState<number>(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const setData = (name: string, value: string | string[]) => {
@@ -63,22 +65,15 @@ const ContactForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    setLog(null);
+    setSubmitCount(0);
+    setTotalCount(formData.csvData.length);
+    setLog([]);
     setIsSubmitting(true);
     e.preventDefault();
 
-    const sliceByNumber = (array, number) => {
-      const length = Math.ceil(array.length / number);
-
-      return new Array(length)
-        .fill(null)
-        .map((_, i) => array.slice(i * number, (i + 1) * number));
-    };
-    const sliceData = sliceByNumber(formData.csvData, 100);
-    const logArr: any[] = [];
-
     try {
-      for (const sd of sliceData) {
+      for (const memberCode of formData.csvData) {
+        setSubmitCount(org => org + 1);
         // APIへPOSTリクエストを送る
         const response = await fetch('/api/submit', {
           method: 'POST',
@@ -89,23 +84,21 @@ const ContactForm: React.FC = () => {
             host: formData.host,
             site_id: formData.siteId,
             site_pass: formData.sitePass,
-            member_id: sd
+            member_id: memberCode
           }),
         });
 
         // レスポンスをJSONとしてパース
         const data = await response.json();
-        logArr.push(data);
+        setLog(org => [...org, data]);
       }
 
       // localStorage.setItem("GMOHost", formData.host);
       // localStorage.setItem("GMOSiteId", formData.siteId);
       // localStorage.setItem("GMOSitePass", formData.sitePass);
-
-      setLog(logArr);
     } catch (error) {
       console.error('Error submitting form:', error);
-      setLog({'エラーが発生しました': error});
+      setLog(org => [...org, `エラーが発生しました: ${String(error)}`]);
     } finally {
       setIsSubmitting(false);
     }
@@ -236,7 +229,7 @@ const ContactForm: React.FC = () => {
             {
               isSubmitting
                 ? <div className="col s12">
-                  <p className="red-text" style={{'float': 'right', 'marginRight': '-1rem', 'fontWeight': 'bold'}}>ブラウザは閉じないでください。</p>
+                  <p className="red-text" style={{'float': 'right', 'marginRight': '-1rem', 'fontWeight': 'bold'}}>ブラウザは閉じないでください。 <span className="black-text">処理状況: {submitCount}/{totalCount}件中</span></p>
                 </div>
                 : <></>
             }
