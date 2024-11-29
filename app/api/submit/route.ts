@@ -22,7 +22,7 @@ export async function POST(req) {
       JSON.stringify({ member_id, datetime: new Date(), data: data }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
-  } catch (error) {
+  } catch (error: any) {
     return new Response(
       JSON.stringify({ message: 'Error processing member', error: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
