@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {},
   webpack: (config) => {
     config.watchOptions = {
       ignored: /node_modules/,  // node_modulesは監視対象から除外
