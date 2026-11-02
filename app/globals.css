@@ -36,6 +36,11 @@ pre {
     min-height: 5rem;
 }
 
+.input-field input:focus + label {
+    transform: translateY(-14px) scale(.8);
+    transform-origin: 0 0;
+}
+
 .progress {
     margin-top: 0 !important;
     margin-bottom: 5rem !important;

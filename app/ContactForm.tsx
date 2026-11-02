@@ -1,170 +1,87 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Papa from 'papaparse';
 
-type FormErrors = {
-  host?: string,
-  siteId?: string,
-  sitePass?: string,
-  csvData?: string
-};
+type FormData = { host: string; siteId: string; sitePass: string; csvData: string[] };
 
 const ContactForm: React.FC = () => {
-  const [formData, setFormData] = useState({
-    host: '',
-    siteId: '',
-    sitePass: '',
-    csvData: []
+  const [formData, setFormData] = useState<FormData>({
+    host: '', siteId: '', sitePass: '', csvData: [],
   });
-  const [errors, setErrors] = useState<FormErrors>({
-    host: '',
-    siteId: '',
-    sitePass: '',
-    csvData: ''
-  });
-  const [fileName, setFileName] = useState<string>('');
-  const [isDisableButton, setIsDisableButton] = useState<boolean>(true);
-  const [log, setLog] = useState<any[]>([]);
-  const [submitCount, setSubmitCount] = useState<number>(0);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [fileName, setFileName] = useState('');
+  const [log, setLog] = useState<unknown[]>([]);
+  const [submitCount, setSubmitCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const setData = (name: string, value: string | string[]) => {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
+  const errors: Partial<Record<keyof FormData, string>> = {};
+  for (const key of Object.keys(formData) as (keyof FormData)[]) {
+    if (formData[key].length === 0) errors[key] = '必須項目です。';
+  }
+  const isDisableButton = Object.keys(errors).length > 0;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const fileName = file.name.toLowerCase();
-      if (fileName.endsWith(".csv")) {
-        Papa.parse(file, {
-          complete: (result) => {
-            const memberIds = result.data.map((row: any) => row[0]);
-            const filterIds = memberIds?.filter(v => !!v);
-            setData('csvData', filterIds);
-            setFileName(fileName);
-          },
-          header: false,
-        });
-      } else {
-        alert("CSVファイルを選択してください。");
-        setData('csvData', []);
-      }
-    } else {
-      setData('csvData', []);
+    setFileName('');
+    setFormData(prev => ({ ...prev, csvData: [] }));
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('CSVファイルを選択してください。');
+      return;
     }
+    Papa.parse<string[]>(file, {
+      complete: result => {
+        const csvData = result.data.map(row => row[0]).filter(Boolean);
+        setFormData(prev => ({ ...prev, csvData }));
+        if (csvData.length) setFileName(file.name);
+      },
+    });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setData(e.target.name, e.target.value);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting || isDisableButton) return;
     setSubmitCount(0);
     setTotalCount(formData.csvData.length);
     setLog([]);
     setIsSubmitting(true);
-    e.preventDefault();
-
     try {
       for (const memberCode of formData.csvData) {
-        setSubmitCount(org => org + 1);
-        // APIへPOSTリクエストを送る
+        setSubmitCount(count => count + 1);
         const response = await fetch('/api/submit', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            host: formData.host,
-            site_id: formData.siteId,
-            site_pass: formData.sitePass,
-            member_id: memberCode
+            host: formData.host, site_id: formData.siteId,
+            site_pass: formData.sitePass, member_id: memberCode,
           }),
         });
-
-        // レスポンスをJSONとしてパース
+        if (!response.headers.get('content-type')?.includes('application/json')) {
+          throw new Error(`会員ID ${memberCode}: サーバーがJSONを返しませんでした（HTTP ${response.status}）。処理結果を確認してください。`);
+        }
         const data = await response.json();
-        setLog(org => [...org, data]);
+        if (!response.ok) {
+          throw new Error(`会員ID ${memberCode}: ${data.message ?? '通信エラー'}（HTTP ${response.status}）`);
+        }
+        setLog(prev => [...prev, data]);
       }
-
-      // localStorage.setItem("GMOHost", formData.host);
-      // localStorage.setItem("GMOSiteId", formData.siteId);
-      // localStorage.setItem("GMOSitePass", formData.sitePass);
     } catch (error) {
-      console.error('Error submitting form:', error);
-      setLog(org => [...org, `エラーが発生しました: ${String(error)}`]);
+      setLog(prev => [...prev, `エラーが発生しました: ${error instanceof Error ? error.message : String(error)}`]);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCopyToClipboard = () => {
-    if (log) {
-      const logString = JSON.stringify(log, null, 2); // オブジェクトをJSON文字列に変換
-      navigator.clipboard.writeText(logString)
-        .then(() => {
-          console.log('ログをクリップボードにコピーしました');
-        })
-        .catch((err) => {
-          console.error('クリップボードにコピーできませんでした:', err);
-        });
-    } else {
-      console.log('コピーするログがありません');
-    }
+    navigator.clipboard.writeText(JSON.stringify(log, null, 2))
+      .catch(() => alert('ログをコピーできませんでした。'));
   };
-
-  // useEffect(() => {
-  //   const host = localStorage.getItem("GMOHost") || '';
-  //   const siteId = localStorage.getItem("GMOSiteId") || '';
-  //   const sitePass = localStorage.getItem("GMOSitePass") || '';
-  //
-  //   const hostElm = document.getElementById('host') as HTMLInputElement;
-  //   if(hostElm) {
-  //     hostElm.value = host;
-  //   }
-  //   const siteIdElm = document.getElementById('site_id') as HTMLInputElement;
-  //   if(siteIdElm) {
-  //     siteIdElm.value = siteId;
-  //   }
-  //   const sitePassElm = document.getElementById('site_pass') as HTMLInputElement;
-  //   if(sitePassElm) {
-  //     sitePassElm.value = sitePass;
-  //   }
-  //
-  //   setFormData({
-  //     ...formData,
-  //     host: host,
-  //     siteId: siteId,
-  //     sitePass: sitePass
-  //   });
-  // }, []);
-
-  useEffect(() => {
-    const newErrors: FormErrors = {};
-
-    Object.keys(formData).forEach((key) => {
-      const value = formData[key as keyof typeof formData];
-      if (value.length === 0) {
-        newErrors[key as keyof FormErrors] = '必須項目です。';
-      }
-    });
-
-    setErrors(newErrors);
-  }, [formData]);
-
-  useEffect(() => {
-    const isThereAnyError = Object.values(errors).some((error) => error !== '');
-    setIsDisableButton(isThereAnyError);
-    if(errors.csvData?.length) {
-      setFileName('');
-    }
-  }, [errors]);
 
   return (
     <>
@@ -173,7 +90,7 @@ const ContactForm: React.FC = () => {
       </div>
       <div className="container mb-5">
         <div className="row">
-          <form  className="col s12">
+          <form onSubmit={handleSubmit} className="col s12">
             <div className="file-field input-field">
               <div className="light-blue darken-4 btn-large">
                 <span>FILE</span>
@@ -187,24 +104,24 @@ const ContactForm: React.FC = () => {
             <div className="row">
               <div className="input-field col s12">
                 <input onChange={handleChange} id="host" name="host" type="text"/>
-                <label htmlFor="host">host</label>
+                <label htmlFor="host" className={formData.host ? 'active' : undefined}>host</label>
                 <span className="helper-text red-text">{errors.host}</span>
               </div>
             </div>
             <div className="row">
               <div className="input-field col s6">
                 <input onChange={handleChange} id="site_id" name="siteId" type="text"/>
-                <label htmlFor="site_id">site_id</label>
+                <label htmlFor="site_id" className={formData.siteId ? 'active' : undefined}>site_id</label>
                 <span className="helper-text red-text">{errors.siteId}</span>
               </div>
               <div className="input-field col s6">
                 <input onChange={handleChange} id="site_pass" name="sitePass" type="password"/>
-                <label htmlFor="site_pass">site_pass</label>
+                <label htmlFor="site_pass" className={formData.sitePass ? 'active' : undefined}>site_pass</label>
                 <span className="helper-text red-text">{errors.sitePass}</span>
               </div>
             </div>
 
-            <button type="submit" disabled={isDisableButton || isSubmitting} onClick={handleSubmit} className="col s2 light-blue darken-4 hoverable waves-effect waves-light btn-large" style={{'float': 'right'}}>
+            <button type="submit" disabled={isDisableButton || isSubmitting} className="col s2 light-blue darken-4 hoverable waves-effect waves-light btn-large" style={{'float': 'right'}}>
               {
                 isSubmitting
                 ? <div className="preloader-wrapper small active" style={{'verticalAlign': 'middle'}}>
