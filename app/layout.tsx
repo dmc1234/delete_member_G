@@ -1,5 +1,4 @@
 import React from 'react';
-import Script from 'next/script';
 import './globals.css';
 import Header from "./Header";
 import Footer from "./Footer";
@@ -21,7 +20,6 @@ const Layout: React.FC<Props> = ({ children }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <link rel="icon" href="icon.png" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
-        <Script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></Script>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
       </head>
       <body className="home">
